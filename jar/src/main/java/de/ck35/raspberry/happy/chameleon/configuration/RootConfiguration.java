@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
+import com.pi4j.io.gpio.GpioPinDigitalOutput;
+
 import de.ck35.raspberry.happy.chameleon.rest.DHTSensorController;
 import de.ck35.raspberry.happy.chameleon.rest.RelayController;
 import de.ck35.raspberry.sensors.temperature.DHTSensor;
@@ -15,17 +17,17 @@ import de.ck35.raspberry.sensors.temperature.DHTSensor;
 @Import({ GpioControllerConfiguration.class })
 public class RootConfiguration {
 
-	@Autowired
-	DHTSensor dhtSensor;
+	@Autowired DHTSensor dhtSensor;
+	@Autowired GpioPinDigitalOutput myFirstSwitch;
     
 	@Bean
 	public DHTSensorController helloWorldController() {
 		return new DHTSensorController(dhtSensor);
 	}
-
+	
 	@Bean
 	public RelayController helloRelay() {
-		return new RelayController();
+		return new RelayController(myFirstSwitch);
 	}
     
 }
