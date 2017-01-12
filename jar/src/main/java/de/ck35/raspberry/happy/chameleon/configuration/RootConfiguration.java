@@ -7,18 +7,25 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 import de.ck35.raspberry.happy.chameleon.rest.DHTSensorController;
+import de.ck35.raspberry.happy.chameleon.rest.RelayController;
 import de.ck35.raspberry.sensors.temperature.DHTSensor;
 
 @Configuration
 @EnableAutoConfiguration
-@Import({GpioControllerConfiguration.class})
+@Import({ GpioControllerConfiguration.class })
 public class RootConfiguration {
 
-    @Autowired DHTSensor dhtSensor;
+	@Autowired
+	DHTSensor dhtSensor;
     
-    @Bean
-    public DHTSensorController helloWorldController() {
-        return new DHTSensorController(dhtSensor);
-    }
+	@Bean
+	public DHTSensorController helloWorldController() {
+		return new DHTSensorController(dhtSensor);
+	}
+
+	@Bean
+	public RelayController helloRelay() {
+		return new RelayController();
+	}
     
 }
