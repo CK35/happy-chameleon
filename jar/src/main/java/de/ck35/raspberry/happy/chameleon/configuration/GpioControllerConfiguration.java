@@ -31,7 +31,8 @@ public class GpioControllerConfiguration {
     
     @Bean
     public GpioPinDigitalOutput myFirstSwitch() {
-        return gpioController().provisionDigitalOutputPin(RaspiPin.getPinByName(env.getRequiredProperty("my_first_switch.pin")), PinState.HIGH);
+		return gpioController().provisionDigitalOutputPin(
+				RaspiPin.getPinByName(env.getRequiredProperty("my_first_switch.pin")), "RelayTest", PinState.HIGH);
     }
     
 }

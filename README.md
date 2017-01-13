@@ -18,6 +18,10 @@ Copy package to your Raspberry and install it with dpkg
 ```
 dpkg -i happy-chameleon-deb_1.0.0_all.deb
 ```
+If necessary convert the file from the DOS / MAC format to the UNIX format
+```
+dos2unix /etc/init.d/happy-chameleon
+```
 Now you are ready to start
 ```
 /etc/init.d/happy-chameleon start
@@ -25,6 +29,7 @@ Now you are ready to start
 If everything was ok you can invoke the following REST resource
 ```
 curl -i http://localhost:8080/dht/read
+curl -i http://localhost:8080/relay/on | off | toggle
 ```
 
 #####DHT Sensor drivers from Adafruit
