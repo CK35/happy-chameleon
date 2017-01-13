@@ -14,9 +14,6 @@ public class RelayController {
 
     public RelayController(GpioPinDigitalOutput myFirstSwitch) {
 		this.myFirstSwitch = myFirstSwitch;
-
-		// When starting, disable the relay for security
-		this.myFirstSwitch.low();
 	}
 	
 	@RequestMapping("/on")
