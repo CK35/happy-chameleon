@@ -1,7 +1,11 @@
 package de.ck35.raspberry.sensors.temperature;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.pi4j.util.NativeLibraryLoader;
 
@@ -13,10 +17,17 @@ import com.pi4j.util.NativeLibraryLoader;
  */
 public class DHTSensor {
     
+    private static final Logger LOG = LoggerFactory.getLogger(DHTSensor.class);
+    
+    private static final String DHT_DRIVER_PATH = "/Adafruit_DHT_Driver_RaspberryPi_2.so";
+    
     static {
         try {
-            NativeLibraryLoader.loadLibraryFromClasspath("/Adafruit_DHT_Driver_RaspberryPi_2.so");
-        } catch (UnsatisfiedLinkError | IOException e) {
+            NativeLibraryLoader.loadLibraryFromClasspath(DHT_DRIVER_PATH);
+        } catch(IOException e) {
+            throw new UncheckedIOException("Could not load shared library for DHT sensor: '" + DHT_DRIVER_PATH + "'!", e);
+        } catch (UnsatisfiedLinkError e) {
+            LOG.warn("Shared library for DHT sensor could not be loaded.", e);
         }
     }
     
