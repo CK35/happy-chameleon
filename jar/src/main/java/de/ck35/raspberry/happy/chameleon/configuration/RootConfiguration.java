@@ -6,41 +6,19 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-import com.pi4j.io.gpio.GpioPinDigitalInput;
-import com.pi4j.io.gpio.GpioPinDigitalOutput;
-
-import de.ck35.raspberry.happy.chameleon.rest.DHTSensorController;
-import de.ck35.raspberry.happy.chameleon.rest.DoorSwitchController;
-import de.ck35.raspberry.happy.chameleon.rest.RelayController;
-import de.ck35.raspberry.sensors.temperature.DHTSensor;
+import de.ck35.raspberry.happy.chameleon.devices.Devices;
+import de.ck35.raspberry.happy.chameleon.rest.DevicesController;
 
 @Configuration
 @EnableAutoConfiguration
-@Import({ GpioControllerConfiguration.class })
+@Import({ DeviceConfiguration.class, GpioConfiguration.class })
 public class RootConfiguration {
 
-	@Autowired
-	DHTSensor dhtSensor;
+	@Autowired Devices devices;
 
-	@Autowired
-	GpioPinDigitalOutput myFirstRelay;
-
-	@Autowired
-	GpioPinDigitalInput myDoorSwitch;
-    
 	@Bean
-	public DHTSensorController helloWorldController() {
-		return new DHTSensorController(dhtSensor);
+	public DevicesController devicesController() {
+		return new DevicesController(devices);
 	}
 	
-	@Bean
-	public RelayController helloRelay() {
-		return new RelayController(myFirstRelay);
-	}
-
-	@Bean
-	public DoorSwitchController helloDoor() {
-		return new DoorSwitchController(myDoorSwitch);
-	}
-    
 }
