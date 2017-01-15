@@ -7,7 +7,9 @@ import org.springframework.core.env.Environment;
 
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
+import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
+import com.pi4j.io.gpio.PinPullResistance;
 import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.RaspiPin;
 
@@ -31,7 +33,15 @@ public class GpioControllerConfiguration {
     
     @Bean
     public GpioPinDigitalOutput myFirstSwitch() {
-        return gpioController().provisionDigitalOutputPin(RaspiPin.getPinByName(env.getRequiredProperty("my_first_switch.pin")), PinState.HIGH);
+		return gpioController().provisionDigitalOutputPin(
+				RaspiPin.getPinByName(env.getRequiredProperty("gpio.relay_board.relay1")), "Relay One", PinState.LOW);
     }
     
+	@Bean
+	public GpioPinDigitalInput myDoorSwitch() {
+		return gpioController()
+				.provisionDigitalInputPin(RaspiPin.getPinByName(env.getRequiredProperty("gpio.switch.left")),
+						"Button Left", PinPullResistance.PULL_UP);
+	}
+
 }
