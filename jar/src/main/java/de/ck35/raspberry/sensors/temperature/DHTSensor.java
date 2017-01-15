@@ -1,7 +1,6 @@
 package de.ck35.raspberry.sensors.temperature;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.Optional;
 
 import com.pi4j.util.NativeLibraryLoader;
@@ -17,8 +16,7 @@ public class DHTSensor {
     static {
         try {
             NativeLibraryLoader.loadLibraryFromClasspath("/Adafruit_DHT_Driver_RaspberryPi_2.so");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        } catch (UnsatisfiedLinkError | IOException e) {
         }
     }
     

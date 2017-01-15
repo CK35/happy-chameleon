@@ -1,9 +1,12 @@
 package de.ck35.raspberry.happy.chameleon.rest;
 
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
+import com.pi4j.io.gpio.PinState;
 
+@RestController
 @RequestMapping("/relay")
 public class RelayController {
 
@@ -25,4 +28,17 @@ public class RelayController {
 		return "Relay off";
 	}
 	
+	@RequestMapping("/toggle")
+	public String toggle() {
+		PinState ps = myFirstSwitch.getState();
+		String fromState = ps.getName();
+
+		myFirstSwitch.toggle();
+
+		ps = myFirstSwitch.getState();
+		String toState = ps.getName();
+
+		return "Relay toggled from '" + fromState + "' to '" + toState + "'.";
+	}
+
 }
