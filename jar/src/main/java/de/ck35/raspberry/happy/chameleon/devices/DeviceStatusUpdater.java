@@ -1,51 +1,54 @@
 package de.ck35.raspberry.happy.chameleon.devices;
 
-import java.io.Closeable;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.RejectedExecutionHandler;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ErrorHandler;
 
 import com.pi4j.io.gpio.GpioPinDigitalInput;
 
 import de.ck35.raspberry.sensors.temperature.DHTSensor;
 
-public class DeviceStatusUpdater implements Runnable, Closeable {
+public class DeviceStatusUpdater implements ErrorHandler, RejectedExecutionHandler {
 
     private static final Logger LOG = LoggerFactory.getLogger(DeviceStatusUpdater.class);
     
-    private final List<Runnable> tasks;
+    private final List<SensorUpdater> tasks;
 
-    private volatile boolean closed;
-    
-    public DeviceStatusUpdater(List<Runnable> tasks) {
+    public DeviceStatusUpdater(List<SensorUpdater> tasks) {
         this.tasks = tasks;
-    }
-    
-    @Override
-    public void run() {
-        while(!closed) {
-            update();
-        }
     }
     
     public void update() {
         tasks.forEach(task -> {
             try {                
-                task.run();
+                task.update();
             } catch(RuntimeException e) {
-                LOG.warn("Error while updating values with: '" + task + "'!", e);
+                LOG.warn("Error while updating sensor values with: '" + task + "'!", e);
             }
         });
     }
     
     @Override
-    public void close() {
-        closed = true;
+    public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+        LOG.warn("Scheduling sensor update task failed!");
     }
     
-    public static class DHTSensorUpdater {
+    @Override
+    public void handleError(Throwable t) {
+        LOG.warn("Error while updating sensor values!", t);
+    }
+    
+    public interface SensorUpdater {
+        
+        void update();
+        
+    }
+    
+    public static class DHTSensorUpdater implements SensorUpdater {
         
         private final DHTSensor sensor;
         private final Sensor temperatureSensor;
@@ -56,6 +59,7 @@ public class DeviceStatusUpdater implements Runnable, Closeable {
             this.temperatureSensor = temperatureSensor;
             this.humiditySensor = humiditySensor;
         }
+        @Override
         public void update() {
             sensor.read().ifPresent(value -> {
                 temperatureSensor.pushValue(value.getTemperature());
@@ -64,15 +68,16 @@ public class DeviceStatusUpdater implements Runnable, Closeable {
         }
     }
     
-    public static class PinStateUpdater {
+    public static class DigitalPinStateUpdater implements SensorUpdater {
         
         private final GpioPinDigitalInput pin;
         private final BinarySensor sensor;
         
-        public PinStateUpdater(GpioPinDigitalInput pin, BinarySensor sensor) {
+        public DigitalPinStateUpdater(GpioPinDigitalInput pin, BinarySensor sensor) {
             this.pin = pin;
             this.sensor = sensor;
         }
+        @Override
         public void update() {
             sensor.pushValue(pin.getState().isHigh());
         }
