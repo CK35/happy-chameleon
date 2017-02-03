@@ -28,8 +28,7 @@ Now you are ready to start
 ```
 If everything was ok you can invoke the following REST resource
 ```
-curl -i http://localhost:8080/dht/read
-curl -i http://localhost:8080/relay/on | off | toggle
+curl -i "http://raspberrypi:8080/devices/status"
 ```
 
 #####DHT Sensor drivers from Adafruit

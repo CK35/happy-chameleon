@@ -23,6 +23,7 @@ import de.ck35.raspberry.happy.chameleon.devices.DeviceStatusUpdater.DHTSensorUp
 import de.ck35.raspberry.happy.chameleon.devices.DeviceStatusUpdater.DigitalPinStateUpdater;
 import de.ck35.raspberry.happy.chameleon.devices.DeviceStatusUpdater.SensorUpdater;
 import de.ck35.raspberry.happy.chameleon.devices.Sensor;
+import de.ck35.raspberry.happy.chameleon.devices.Switch;
 import de.ck35.raspberry.sensors.temperature.DHTSensor;
 
 @Configuration
@@ -36,32 +37,40 @@ public class GpioConfiguration {
 
     @Autowired Sensor temperatureSensor;
     @Autowired Sensor humiditySensor;
+    
     @Autowired BinarySensor leftDoorSensor;
     @Autowired BinarySensor rightDoorSensor;
 
+    @Autowired Switch rainSystemSwitch;
+    @Autowired Switch heatLampSwitch1;
+    @Autowired Switch lightBulpSwitch1;
+    
     @Autowired List<SensorUpdater> sensorUpdateTasks;
 
     @Bean
     public DeviceStatusUpdater deviceStatusUpdater() {
-        return new DeviceStatusUpdater(sensorUpdateTasks);
+        long updatePeriodMillis = env.getProperty("gpioConfiguration.deviceStatusUpdateTaskScheduler.updatePeriodMillis", Long.TYPE, 500L);
+        DeviceStatusUpdater updater = new DeviceStatusUpdater(sensorUpdateTasks);
+        deviceStatusUpdateTaskScheduler().scheduleAtFixedRate(updater::update, updatePeriodMillis);
+        return updater;
     }
 
     @Bean
     public ThreadPoolTaskScheduler deviceStatusUpdateTaskScheduler() {
-        long updatePeriodMillis = env.getProperty("gpioConfiguration.deviceStatusUpdateTaskScheduler.updatePeriodMillis", Long.TYPE, 100L);
-
+        
+        DeviceStatusUpdater.Errors errorHandler = new DeviceStatusUpdater.Errors();
+        
         ThreadPoolTaskScheduler executor = new ThreadPoolTaskScheduler();
-        executor.setErrorHandler(deviceStatusUpdater());
-        executor.setRejectedExecutionHandler(deviceStatusUpdater());
+        executor.setErrorHandler(errorHandler);
+        executor.setRejectedExecutionHandler(errorHandler);
         executor.setThreadNamePrefix("SensorUpdateThread-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.scheduleAtFixedRate(deviceStatusUpdater()::update, updatePeriodMillis);
         
         return executor;
     }
 
     @Bean
-    public SensorUpdater dhtSensorTop() {
+    public SensorUpdater dhtSensorTopUpdater() {
         DHTSensor.Type type = env.getProperty("gpioConfiguration.dhtSensorTop.type", DHTSensor.Type.class, DHTSensor.Type.AM2302);
         int pin = env.getRequiredProperty("gpioConfiguration.dhtSensorTop.pin", Integer.TYPE);
         DHTSensor sensor = new DHTSensor(type, pin);
@@ -69,7 +78,7 @@ public class GpioConfiguration {
     }
 
     @Bean
-    public SensorUpdater dhtSensorBottom() {
+    public SensorUpdater dhtSensorBottomUpdater() {
         DHTSensor.Type type = env.getProperty("gpioConfiguration.dhtSensorBottom.type", DHTSensor.Type.class, DHTSensor.Type.AM2302);
         int pin = env.getRequiredProperty("gpioConfiguration.dhtSensorBottom.pin", Integer.TYPE);
         DHTSensor sensor = new DHTSensor(type, pin);
@@ -77,22 +86,46 @@ public class GpioConfiguration {
     }
 
     @Bean
-    public SensorUpdater leftDoorSensor() {
+    public SensorUpdater leftDoorSensorUpdater() {
         Pin pin = RaspiPin.getPinByName(env.getRequiredProperty("gpioConfiguration.leftDoorSensor.pin.name"));
-        GpioPinDigitalInput digitalInputPin = gpioController.provisionDigitalInputPin(pin, "Door left", PinPullResistance.PULL_UP);
+        PinPullResistance pinPullResistance = env.getRequiredProperty("gpioConfiguration.leftDoorSensor.pinPullResistance", PinPullResistance.class);
+        GpioPinDigitalInput digitalInputPin = gpioController.provisionDigitalInputPin(pin, "door left", pinPullResistance);
         return new DigitalPinStateUpdater(digitalInputPin, leftDoorSensor);
     }
     
     @Bean
-    public SensorUpdater rightDoorSensor() {
+    public SensorUpdater rightDoorSensorUpdater() {
         Pin pin = RaspiPin.getPinByName(env.getRequiredProperty("gpioConfiguration.rightDoorSensor.pin.name"));
-        GpioPinDigitalInput digitalInputPin = gpioController.provisionDigitalInputPin(pin, "Door right", PinPullResistance.PULL_UP);
+        PinPullResistance pinPullResistance = env.getRequiredProperty("gpioConfiguration.rightDoorSensor.pinPullResistance", PinPullResistance.class);
+        GpioPinDigitalInput digitalInputPin = gpioController.provisionDigitalInputPin(pin, "door right", pinPullResistance);
         return new DigitalPinStateUpdater(digitalInputPin, rightDoorSensor);
     }
     
     @Bean
     public GpioPinDigitalOutput rainSystem() {
-        return gpioController.provisionDigitalOutputPin(RaspiPin.getPinByName(env.getRequiredProperty("gpio.relay_board.relay1")), "Relay One", PinState.LOW);
+        Pin pin = RaspiPin.getPinByName(env.getRequiredProperty("gpioConfiguration.rainSystem.pin.name"));
+        PinState defaultState = env.getRequiredProperty("gpioConfiguration.rainSystem.pin.defaultState", PinState.class);
+        GpioPinDigitalOutput digitalOutput = gpioController.provisionDigitalOutputPin(pin, "rain system", defaultState);
+        rainSystemSwitch.connect(digitalOutput::setState);
+        return digitalOutput;
+    }
+    
+    @Bean
+    public GpioPinDigitalOutput heatLamp1() {
+        Pin pin = RaspiPin.getPinByName(env.getRequiredProperty("gpioConfiguration.heatLamp1.pin.name"));
+        PinState defaultState = env.getRequiredProperty("gpioConfiguration.heatLamp1.pin.defaultState", PinState.class);
+        GpioPinDigitalOutput digitalOutput = gpioController.provisionDigitalOutputPin(pin, "heat lamp 1", defaultState);
+        heatLampSwitch1.connect(digitalOutput::setState);
+        return digitalOutput;
+    }
+    
+    @Bean
+    public GpioPinDigitalOutput lightBulp1() {
+        Pin pin = RaspiPin.getPinByName(env.getRequiredProperty("gpioConfiguration.lightBulp1.pin.name"));
+        PinState defaultState = env.getRequiredProperty("gpioConfiguration.lightBulp1.pin.defaultState", PinState.class);
+        GpioPinDigitalOutput digitalOutput = gpioController.provisionDigitalOutputPin(pin, "light bulp 1", defaultState);
+        lightBulpSwitch1.connect(digitalOutput::setState);
+        return digitalOutput;
     }
 
 }
