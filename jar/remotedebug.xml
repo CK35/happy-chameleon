@@ -1,8 +1,8 @@
 <project name="deploy" default="remotedebug" basedir=".">
-  <property name="raspberrypi" value="192.168.0.23" />
+  <property name="raspberrypi" value="PI_IP" />
   <property name="raspberryfolder" value="~" />
-  <property name="username" value="pi" />
-  <property name="password" value="sukram" />
+  <property name="username" value="USERNAME" />
+  <property name="password" value="PASSWORD" />
  
   <target name="remotedebug">
     <first id="jars">
