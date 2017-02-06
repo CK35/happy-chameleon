@@ -25,5 +25,6 @@
 # Ideensammlung für Optionale Erweiterungen
 - Einstellen von Fütterungszeiten und Benachrichtigungen wenn Zeit eingetroffen
 - Anbindung an Amazon Alexa um Temperatur/Luftfeuchtigkeit ab zu fragen.
+- Erinnerung an UV-Lampe wechseln
 
 
