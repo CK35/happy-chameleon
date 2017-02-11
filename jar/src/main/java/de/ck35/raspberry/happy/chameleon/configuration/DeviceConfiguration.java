@@ -28,7 +28,7 @@ public class DeviceConfiguration {
         int numberOfValues = env.getProperty("deviceConfiguration.temperatureSensor.numberOfValues", Integer.TYPE, 5);
         double quantile = env.getProperty("deviceConfiguration.temperatureSensor.quantile", Double.TYPE, 0.5);
         double delta = env.getProperty("deviceConfiguration.temperatureSensor.delta", Double.TYPE, 0.5);
-        return new Sensor(new RetentionPolicy(clock, retentionDuration), supervisorWorker()::update, new SlidingValues(numberOfValues, quantile), delta);
+        return new Sensor(new RetentionPolicy(clock, retentionDuration), new SlidingValues(numberOfValues, quantile), supervisorWorker()::update, delta);
     }
 
     @Bean
@@ -37,23 +37,26 @@ public class DeviceConfiguration {
         int numberOfValues = env.getProperty("deviceConfiguration.humiditySensor.numberOfValues", Integer.TYPE, 5);
         double quantile = env.getProperty("deviceConfiguration.humiditySensor.quantile", Double.TYPE, 0.5);
         double delta = env.getProperty("deviceConfiguration.humiditySensor.delta", Double.TYPE, 0.5);
-        return new Sensor(new RetentionPolicy(clock, retentionDuration), supervisorWorker()::update, new SlidingValues(numberOfValues, quantile), delta);
+        return new Sensor(new RetentionPolicy(clock, retentionDuration), new SlidingValues(numberOfValues, quantile), supervisorWorker()::update, delta);
     }
 
     @Bean
     public BinarySensor leftDoorSensor() {
         Duration retentionDuration = Duration.parse(env.getProperty("deviceConfiguration.leftDoorSensor.retentionDuration", "PT2M"));
-        int numberOfValues = env.getProperty("deviceConfiguration.leftDoorSensor.numberOfValues", Integer.TYPE, 4);
-        double quantile = env.getProperty("deviceConfiguration.leftDoorSensor.quantile", Double.TYPE, 0.5);
-        return new BinarySensor(new RetentionPolicy(clock, retentionDuration), supervisorWorker()::update, new SlidingValues(numberOfValues, quantile));
+        int minNumberOfSameValues = env.getProperty("deviceConfiguration.leftDoorSensor.minNumberOfSameValues", Integer.TYPE, 5);
+        return new BinarySensor(new RetentionPolicy(clock, retentionDuration), minNumberOfSameValues, supervisorWorker()::update);
     }
 
     @Bean
     public BinarySensor rightDoorSensor() {
         Duration retentionDuration = Duration.parse(env.getProperty("deviceConfiguration.rightDoorSensor.retentionDuration", "PT2M"));
-        int numberOfValues = env.getProperty("deviceConfiguration.rightDoorSensor.numberOfValues", Integer.TYPE, 4);
-        double quantile = env.getProperty("deviceConfiguration.rightDoorSensor.quantile", Double.TYPE, 0.5);
-        return new BinarySensor(new RetentionPolicy(clock, retentionDuration), supervisorWorker()::update, new SlidingValues(numberOfValues, quantile));
+        int minNumberOfSameValues = env.getProperty("deviceConfiguration.rightDoorSensor.minNumberOfSameValues", Integer.TYPE, 5);
+        return new BinarySensor(new RetentionPolicy(clock, retentionDuration), minNumberOfSameValues, supervisorWorker()::update);
+    }
+    
+    @Bean
+    public Switch rainSystemTimerSwitch() {
+    	return new Switch(supervisorWorker()::update);
     }
 
     @Bean

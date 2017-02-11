@@ -61,5 +61,9 @@ public class Terrarium {
         }
     }
     
+    public double getCurrentMaxHumidity() {
+        return humidityRepository.findOne(now().getMonthValue()).max;
+    }
+    
 
 }

@@ -5,7 +5,6 @@ import java.util.Optional;
 
 public class SupervisorWorker implements Closeable {
 
-
     private final Thread thread;
     private final long maximalUpdateIntervalMillis;
 

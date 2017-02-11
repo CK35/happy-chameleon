@@ -8,16 +8,19 @@ public class BinarySensor {
 
     private final Lock lock;
     private final RetentionPolicy retentionPolicy;
+    private final int minNumberOfSameValues;
+    private boolean lastValue;
+    private Boolean lastValidValue;
+    private int currentNumberOfSameValues;
     private final Runnable valuesChangedListener;
-    private final SlidingValues slidingValues;
     
     private boolean overwritten;
     private boolean overwrittenValue;
     
-    public BinarySensor(RetentionPolicy retentionPolicy, Runnable valuesChangedListener, SlidingValues slidingValues) {
+    public BinarySensor(RetentionPolicy retentionPolicy, int minNumberOfSameValues, Runnable valuesChangedListener) {
         this.retentionPolicy = retentionPolicy;
+        this.minNumberOfSameValues = minNumberOfSameValues;
         this.valuesChangedListener = valuesChangedListener;
-        this.slidingValues = slidingValues;
         this.lock = new ReentrantLock();
     }
     
@@ -29,6 +32,7 @@ public class BinarySensor {
         } finally {
             this.lock.unlock();
         }
+        valuesChangedListener.run();
     }
     
     public void disableOverwrite() {
@@ -39,6 +43,7 @@ public class BinarySensor {
         } finally {
             this.lock.unlock();
         }
+        valuesChangedListener.run();
     }
     
     public Optional<Boolean> getValue() {
@@ -47,22 +52,30 @@ public class BinarySensor {
             if(overwritten) {
                 return Optional.of(overwrittenValue);
             }
-            if(retentionPolicy.isValid()) {
+            if(!retentionPolicy.isValid()) {
                 return Optional.empty();
             }
-            return slidingValues.get().map(value -> value == 1d ? true : false);
+            if(currentNumberOfSameValues >= minNumberOfSameValues) {
+            	lastValidValue = lastValue;
+            }
+            return Optional.ofNullable(lastValidValue);
         } finally {
             this.lock.unlock();
         }
     }
     
-    void pushValue(boolean value) {
+    public void pushValue(boolean value) {
         Boolean oldValue;
         Boolean newValue;
         this.lock.lock();
         try {
             oldValue = getValue().orElse(null);
-            slidingValues.push(value ? 1d : 0d);
+            if(lastValue == value) {
+            	currentNumberOfSameValues++;
+            } else {
+            	lastValue = value;
+            	currentNumberOfSameValues = 1;
+            }
             retentionPolicy.update();
             newValue = getValue().orElse(null);
         } finally {

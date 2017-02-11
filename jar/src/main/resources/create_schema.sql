@@ -25,7 +25,10 @@ CREATE TABLE IF NOT EXISTS `day_time` (
 
 CREATE TABLE IF NOT EXISTS `rain_program` (
   `month` INT NOT NULL,
-  `cronStartTrigger` varchar(255) NOT NULL,
-  `cronEndTrigger` varchar(255) NOT NULL,
-  PRIMARY KEY (`month`, `cronStartTrigger`)
+  `dayOfWeek`INT NOT NULL,
+  `hourOfDayStart`INT NOT NULL,
+  `minuteOfHourStart`INT NOT NULL,
+  `hourOfDayEnd` INT NOT NULL,
+  `minuteOfHourEnd` INT NOT NULL,
+  PRIMARY KEY (`month`, `dayOfWeek`, `hourOfDayStart`, `minuteOfHourStart`)
 ) ENGINE=InnoDB DEFAULT CHARSET=UTF8;

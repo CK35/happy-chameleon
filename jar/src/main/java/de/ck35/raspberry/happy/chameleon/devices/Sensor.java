@@ -14,12 +14,12 @@ public class Sensor {
 
     private final double delta;
 
-    public Sensor(RetentionPolicy retentionPolicy, Runnable valuesChangedListener, SlidingValues slidingValues, double delta) {
+    public Sensor(RetentionPolicy retentionPolicy, SlidingValues slidingValues, Runnable valuesChangedListener, double valuesChangedDelta) {
         this.lock = new ReentrantLock();
         this.retentionPolicy = retentionPolicy;
         this.valuesChangedListener = valuesChangedListener;
         this.slidingValues = slidingValues;
-        this.delta = delta;
+        this.delta = valuesChangedDelta;
     }
 
     public Optional<Double> getValue() {
@@ -34,7 +34,7 @@ public class Sensor {
         }
     }
 
-    void pushValue(double value) {
+    public void pushValue(double value) {
         Double oldValue;
         Double newValue;
         this.lock.lock();
@@ -51,6 +51,7 @@ public class Sensor {
         }
         if (oldValue == null && newValue != null) {
             valuesChangedListener.run();
+            return;
         }
         double difference = oldValue.doubleValue() - newValue.doubleValue();
         if ((difference < 0 && (difference * -1) >= delta) || (difference >= delta)) {

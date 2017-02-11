@@ -21,12 +21,19 @@ public class Supervisor {
     @Autowired BinarySensor leftDoorSensor;
     @Autowired BinarySensor rightDoorSensor;
 
+    @Autowired Switch rainSystemTimerSwitch;
     @Autowired Switch rainSystemSwitch;
+    
     @Autowired Switch heatLampSwitch1;
+    
     @Autowired Switch lightBulpSwitch1;
     
     public void update() {
-
+    	
+    	if(rainSystemTimerSwitch.isOff()) {
+    		rainSystemSwitch.setOff();
+    	}
+    	
         if(isAnyDoorOpen()) {
             rainSystemSwitch.setOff();
             heatLampSwitch1.setOff();
@@ -45,11 +52,16 @@ public class Supervisor {
 
         if(temperature.doubleValue() > terrarium.getCurrentMaxTemperature()) {
             heatLampSwitch1.setOff();
+            
+        } else if(humidity.doubleValue() > terrarium.getCurrentMaxHumidity()) {
+        	heatLampSwitch1.setOn();
+        }
+        
+        if(rainSystemTimerSwitch.isOn()) {
+        	rainSystemSwitch.setOn();
         }
         
     }
-    
-    
     
     public boolean isAnyDoorOpen() {
         return leftDoorSensor.getValue().orElse(false).booleanValue() || rightDoorSensor.getValue().orElse(false).booleanValue();
