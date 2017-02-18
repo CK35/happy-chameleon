@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -13,14 +14,17 @@ import de.ck35.raspberry.happy.chameleon.devices.RetentionPolicy;
 import de.ck35.raspberry.happy.chameleon.devices.Sensor;
 import de.ck35.raspberry.happy.chameleon.devices.SlidingValues;
 import de.ck35.raspberry.happy.chameleon.devices.Switch;
+import de.ck35.raspberry.happy.chameleon.terrarium.RainSystemTimer;
 import de.ck35.raspberry.happy.chameleon.terrarium.Supervisor;
 import de.ck35.raspberry.happy.chameleon.terrarium.SupervisorWorker;
+import de.ck35.raspberry.happy.chameleon.terrarium.jpa.RainProgramm.RainProgramms;
 
 @Configuration
 public class DeviceConfiguration {
 
     @Autowired Environment env;
     @Autowired Clock clock;
+    @Autowired RainProgramms rainProgramms;
 
     @Bean
     public Sensor temperatureSensor() {
@@ -56,7 +60,7 @@ public class DeviceConfiguration {
     
     @Bean
     public Switch rainSystemTimerSwitch() {
-    	return new Switch(supervisorWorker()::update);
+        return new Switch(supervisorWorker()::update);
     }
 
     @Bean
@@ -84,5 +88,10 @@ public class DeviceConfiguration {
     @Bean
     public SupervisorWorker supervisorWorker() {
         return new SupervisorWorker(env.getProperty("deviceConfiguration.supervisorWorker.maximalUpdateIntervalMillis", Long.TYPE, 10_000L));
+    }
+    
+    @Bean
+    public RainSystemTimer rainSystemTimer() {
+        return new RainSystemTimer(rainSystemSwitch(), rainProgramms);
     }
 }

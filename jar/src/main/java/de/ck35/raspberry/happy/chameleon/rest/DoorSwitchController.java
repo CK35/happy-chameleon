@@ -10,21 +10,21 @@ import com.pi4j.io.gpio.PinState;
 @RequestMapping("/door")
 public class DoorSwitchController {
 
-	private final GpioPinDigitalInput myDoorSwitch;
+    private final GpioPinDigitalInput myDoorSwitch;
 
-	public DoorSwitchController(GpioPinDigitalInput myDoorSwitch) {
-		this.myDoorSwitch = myDoorSwitch;
-	}
+    public DoorSwitchController(GpioPinDigitalInput myDoorSwitch) {
+        this.myDoorSwitch = myDoorSwitch;
+    }
 
-	@RequestMapping("/status")
-	public String status() {
-		PinState ps = myDoorSwitch.getState();
+    @RequestMapping("/status")
+    public String status() {
+        PinState ps = myDoorSwitch.getState();
 
-		if (myDoorSwitch.isHigh()) {
-			// Door is open
-		}
+        if (myDoorSwitch.isHigh()) {
+            // Door is open
+        }
 
-		return "Door status is: " + ps.getName();
-	}
+        return "Door status is: " + ps.getName();
+    }
 
 }

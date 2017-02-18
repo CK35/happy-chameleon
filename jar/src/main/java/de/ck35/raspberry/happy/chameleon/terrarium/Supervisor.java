@@ -29,11 +29,11 @@ public class Supervisor {
     @Autowired Switch lightBulpSwitch1;
     
     public void update() {
-    	
-    	if(rainSystemTimerSwitch.isOff()) {
-    		rainSystemSwitch.setOff();
-    	}
-    	
+        
+        if(rainSystemTimerSwitch.isOff()) {
+            rainSystemSwitch.setOff();
+        }
+        
         if(isAnyDoorOpen()) {
             rainSystemSwitch.setOff();
             heatLampSwitch1.setOff();
@@ -54,11 +54,11 @@ public class Supervisor {
             heatLampSwitch1.setOff();
             
         } else if(humidity.doubleValue() > terrarium.getCurrentMaxHumidity()) {
-        	heatLampSwitch1.setOn();
+            heatLampSwitch1.setOn();
         }
         
         if(rainSystemTimerSwitch.isOn()) {
-        	rainSystemSwitch.setOn();
+            rainSystemSwitch.setOn();
         }
         
     }

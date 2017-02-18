@@ -56,7 +56,7 @@ public class BinarySensor {
                 return Optional.empty();
             }
             if(currentNumberOfSameValues >= minNumberOfSameValues) {
-            	lastValidValue = lastValue;
+                lastValidValue = lastValue;
             }
             return Optional.ofNullable(lastValidValue);
         } finally {
@@ -71,10 +71,10 @@ public class BinarySensor {
         try {
             oldValue = getValue().orElse(null);
             if(lastValue == value) {
-            	currentNumberOfSameValues++;
+                currentNumberOfSameValues++;
             } else {
-            	lastValue = value;
-            	currentNumberOfSameValues = 1;
+                lastValue = value;
+                currentNumberOfSameValues = 1;
             }
             retentionPolicy.update();
             newValue = getValue().orElse(null);

@@ -1,12 +1,17 @@
 package de.ck35.raspberry.happy.chameleon.terrarium.jpa;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.time.Clock;
+import java.time.DayOfWeek;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.Month;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
-import java.util.Date;
+import java.time.ZonedDateTime;
+import java.util.Arrays;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,11 +22,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
-import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import de.ck35.raspberry.happy.chameleon.configuration.JpaConfiguration;
+import de.ck35.raspberry.happy.chameleon.terrarium.jpa.RainProgramm.RainProgramms;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes=TerrariumTest.TestConfiguration.class)
@@ -29,6 +34,7 @@ public class TerrariumTest {
 
     @Autowired Clock clock;
     @Autowired Terrarium terrarium;
+    @Autowired RainProgramms rainProgramms;
     
     @Test
     public void testGetCurrentMaxTemperature() {
@@ -36,8 +42,16 @@ public class TerrariumTest {
     }
 
     @Test
-    public void testC() {
-        new CronSequenceGenerator("0 * * * * 7").next(new Date());
+    public void testRainProgramms() {
+        rainProgramms.save(Month.FEBRUARY, DayOfWeek.FRIDAY, LocalTime.of(7, 20), LocalTime.of(8, 30));
+        rainProgramms.save(Month.FEBRUARY, DayOfWeek.FRIDAY, LocalTime.of(7, 0), LocalTime.of(8, 0));
+        rainProgramms.save(Month.FEBRUARY, DayOfWeek.FRIDAY, LocalTime.of(7, 10), LocalTime.of(9, 0));
+        
+        LocalDate date = LocalDate.of(2017, 2, 17);
+        ZoneId zoneId = ZoneOffset.UTC;
+        ZonedDateTime start = ZonedDateTime.of(date.atTime(7, 0), zoneId);
+        ZonedDateTime end = ZonedDateTime.of(date.atTime(9, 0), zoneId);
+        assertEquals(Arrays.asList(Interval.between(start, end)), rainProgramms.findProgrammsForDay(date, zoneId));
     }
 
     @Configuration
@@ -49,7 +63,7 @@ public class TerrariumTest {
         
         @Bean
         public Clock clock() {
-            return Clock.fixed(Instant.parse("2016-01-29T10:00:00.00Z"), ZoneOffset.UTC);
+            return Clock.fixed(Instant.parse("2017-02-17T10:00:00.00Z"), ZoneOffset.UTC);
         }
         
     }
