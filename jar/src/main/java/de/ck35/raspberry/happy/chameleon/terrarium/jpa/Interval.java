@@ -21,7 +21,6 @@ public class Interval implements Comparable<Interval> {
     public ZonedDateTime getStart() {
         return start;
     }
-
     public ZonedDateTime getEnd() {
         return end;
     }
@@ -29,7 +28,21 @@ public class Interval implements Comparable<Interval> {
     public Duration toDuration() {
         return Duration.between(start, end);
     }
-
+    
+    public boolean isBefore(ZonedDateTime timestamp) {
+        return timestamp.isEqual(end) || timestamp.isAfter(end);
+    }
+    
+    /**
+     * Test if this interval contains the given timestamp where start is inclusive and end is exclusive.
+     * 
+     * @param timestamp The timestamp to test.
+     * @return true if the given timestamp is contained inside this interval.
+     */
+    public boolean contains(ZonedDateTime timestamp) {
+        return timestamp.equals(start) || (timestamp.isAfter(start) && timestamp.isBefore(end));
+    }
+    
     /**
      * Test if the given interval is contained inside this interval or if it is
      * the same as this interval.

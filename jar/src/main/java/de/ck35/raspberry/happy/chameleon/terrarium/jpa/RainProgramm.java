@@ -17,6 +17,7 @@ import javax.persistence.Table;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Entity
 @Table(name = "rain_program")
@@ -33,7 +34,9 @@ public class RainProgramm {
     public static interface RainProgrammRepository extends CrudRepository<RainProgramm, Integer> {
 
         List<RainProgramm> findAllByMonthAndDayOfWeek(int month, int dayOfWeek);
-
+        
+        @Transactional
+        void deleteByMonth(int month);
     }
 
     @Component
@@ -50,6 +53,10 @@ public class RainProgramm {
             programm.hourOfDayEnd = end.getHour();
             programm.minuteOfHourEnd = end.getMinute();
             repository.save(programm);
+        }
+        
+        public void deleteAll(Month month) {
+            repository.deleteByMonth(month.getValue());
         }
 
         public List<Interval> findProgrammsForDay(LocalDate date, ZoneId zone) {

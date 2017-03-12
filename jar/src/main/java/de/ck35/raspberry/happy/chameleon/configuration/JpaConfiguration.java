@@ -78,7 +78,7 @@ public class JpaConfiguration {
                                             .build();
     }
     
-    @Bean
+    @Bean({"transactionManager", "txManager"})
     public PlatformTransactionManager transactionManager() {
         return new JpaTransactionManager(entityManagerFactory().getObject());
     }

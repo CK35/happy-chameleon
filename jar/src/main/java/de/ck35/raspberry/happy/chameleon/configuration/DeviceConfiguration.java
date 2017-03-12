@@ -4,7 +4,6 @@ import java.time.Clock;
 import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -14,9 +13,9 @@ import de.ck35.raspberry.happy.chameleon.devices.RetentionPolicy;
 import de.ck35.raspberry.happy.chameleon.devices.Sensor;
 import de.ck35.raspberry.happy.chameleon.devices.SlidingValues;
 import de.ck35.raspberry.happy.chameleon.devices.Switch;
+import de.ck35.raspberry.happy.chameleon.terrarium.EventDispatcher;
 import de.ck35.raspberry.happy.chameleon.terrarium.RainSystemTimer;
 import de.ck35.raspberry.happy.chameleon.terrarium.Supervisor;
-import de.ck35.raspberry.happy.chameleon.terrarium.SupervisorWorker;
 import de.ck35.raspberry.happy.chameleon.terrarium.jpa.RainProgramm.RainProgramms;
 
 @Configuration
@@ -32,7 +31,7 @@ public class DeviceConfiguration {
         int numberOfValues = env.getProperty("deviceConfiguration.temperatureSensor.numberOfValues", Integer.TYPE, 5);
         double quantile = env.getProperty("deviceConfiguration.temperatureSensor.quantile", Double.TYPE, 0.5);
         double delta = env.getProperty("deviceConfiguration.temperatureSensor.delta", Double.TYPE, 0.5);
-        return new Sensor(new RetentionPolicy(clock, retentionDuration), new SlidingValues(numberOfValues, quantile), supervisorWorker()::update, delta);
+        return new Sensor(new RetentionPolicy(clock, retentionDuration), new SlidingValues(numberOfValues, quantile), eventDispatcher(), delta);
     }
 
     @Bean
@@ -41,57 +40,57 @@ public class DeviceConfiguration {
         int numberOfValues = env.getProperty("deviceConfiguration.humiditySensor.numberOfValues", Integer.TYPE, 5);
         double quantile = env.getProperty("deviceConfiguration.humiditySensor.quantile", Double.TYPE, 0.5);
         double delta = env.getProperty("deviceConfiguration.humiditySensor.delta", Double.TYPE, 0.5);
-        return new Sensor(new RetentionPolicy(clock, retentionDuration), new SlidingValues(numberOfValues, quantile), supervisorWorker()::update, delta);
+        return new Sensor(new RetentionPolicy(clock, retentionDuration), new SlidingValues(numberOfValues, quantile), eventDispatcher(), delta);
     }
 
     @Bean
     public BinarySensor leftDoorSensor() {
         Duration retentionDuration = Duration.parse(env.getProperty("deviceConfiguration.leftDoorSensor.retentionDuration", "PT2M"));
         int minNumberOfSameValues = env.getProperty("deviceConfiguration.leftDoorSensor.minNumberOfSameValues", Integer.TYPE, 5);
-        return new BinarySensor(new RetentionPolicy(clock, retentionDuration), minNumberOfSameValues, supervisorWorker()::update);
+        return new BinarySensor(new RetentionPolicy(clock, retentionDuration), minNumberOfSameValues, eventDispatcher());
     }
 
     @Bean
     public BinarySensor rightDoorSensor() {
         Duration retentionDuration = Duration.parse(env.getProperty("deviceConfiguration.rightDoorSensor.retentionDuration", "PT2M"));
         int minNumberOfSameValues = env.getProperty("deviceConfiguration.rightDoorSensor.minNumberOfSameValues", Integer.TYPE, 5);
-        return new BinarySensor(new RetentionPolicy(clock, retentionDuration), minNumberOfSameValues, supervisorWorker()::update);
+        return new BinarySensor(new RetentionPolicy(clock, retentionDuration), minNumberOfSameValues, eventDispatcher());
     }
     
     @Bean
     public Switch rainSystemTimerSwitch() {
-        return new Switch(supervisorWorker()::update);
+        return new Switch(eventDispatcher());
     }
 
     @Bean
     public Switch rainSystemSwitch() {
-        return new Switch(supervisorWorker()::update);
+        return new Switch(eventDispatcher());
     }
     
     @Bean
     public Switch heatLampSwitch1() {
-        return new Switch(supervisorWorker()::update);
+        return new Switch(eventDispatcher());
     }
     
     @Bean
     public Switch lightBulpSwitch1() {
-        return new Switch(supervisorWorker()::update);
+        return new Switch(eventDispatcher());
+    }
+    
+    @Bean
+    public EventDispatcher eventDispatcher() {
+        return new EventDispatcher();
     }
     
     @Bean
     public Supervisor supervisor() {
         Supervisor supervisor = new Supervisor();
-        supervisorWorker().setSupervisor(supervisor);
+        eventDispatcher().addListener(supervisor::update);
         return supervisor;
     }
 
     @Bean
-    public SupervisorWorker supervisorWorker() {
-        return new SupervisorWorker(env.getProperty("deviceConfiguration.supervisorWorker.maximalUpdateIntervalMillis", Long.TYPE, 10_000L));
-    }
-    
-    @Bean
     public RainSystemTimer rainSystemTimer() {
-        return new RainSystemTimer(rainSystemSwitch(), rainProgramms);
+        return new RainSystemTimer(rainSystemTimerSwitch(), rainProgramms, clock);
     }
 }
